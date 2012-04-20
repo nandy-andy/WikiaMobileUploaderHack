@@ -1,5 +1,5 @@
 function FirstView() {
-	function sendPhoto(media) {
+	function sendPhoto(media, self) {
 		var token;
 		var serverUrl = 'http://nandytest.wikia.com/api.php';
 		var loginXhr = Titanium.Network.createHTTPClient();
@@ -76,6 +76,15 @@ function FirstView() {
 							Ti.API.info('FILE UPLOAD:');
 							Ti.API.info('token: '+token);
 							Ti.API.info(this.responseText);
+							self.children[1].text = 'YEAH!'; //hide the status label
+							var responseObject = eval('('+this.responseText+')');
+Ti.API.info('==============');
+Ti.API.info(responseObject);
+Ti.API.info(responseObject.upload);
+Ti.API.info(responseObject.upload.result);
+Ti.API.info(responseObject.upload.imageinfo);
+Ti.API.info(responseObject.upload.imageinfo.descriptionurl);
+							return true;
 						}
 						else {
 							alert('Whoops, something failed in your upload script.');
@@ -83,12 +92,12 @@ function FirstView() {
 							self.children[1].hide(); //hide the status label
 							self.children[2].show(); //show the upload button again
 							androidUploadProgress = 0; //reset the android progress value
+							return false;
 						}
 					};
 				}
 			};
 		}
-		return loginXhr;
 	}
 	function printObject(object) {
 		var output = '';
@@ -176,68 +185,6 @@ function FirstView() {
 		logInMe();
 	});
 	self.add(btnChoosePhoto);
-	//self.add(btnLogin);
-	function UploadPhotoToServer(media) {
-		if (Titanium.Network.online == true) {
-			self.children[0].show(); //show the uploading slider progress bar
-			self.children[0].children[0].width = 0; //make sure the default value is zero
-			self.children[1].show(); //show the uploading label
-			self.children[1].text = 'Uploading photo, please wait...'; //set the label to default value
-			self.children[2].hide(); //hide the select photo button
-		}
-		else {
-			alert('You must have a valid Internet connection in order to upload this photo.');
-		}
-		var serverUrl = 'http://skchbk.foxnet.pl/upload/';
-		var xhr = Titanium.Network.createHTTPClient();
-		xhr.onerror = function(e) {
-			Ti.API.info('IN ERROR ' + e.error);
-			alert('Sorry, we could not upload your photo! Please try again.');
-		};
-		xhr.onload = function() {
-			Ti.API.info('IN ONLOAD ' + this.status + ' readyState ' + this.readyState);
-			if(this.responseText != 'false') {
-				var url = this.responseText; //set our url variable to the response
-				self.children[0].children[0].width = 298;  //set the progress to 100% (298px based on our design)                 
-				//if we successfully uploaded, then ask the user if they want to view the photo
-				var confirm = Titanium.UI.createAlertDialog({
-					title: 'Upload complete!',
-					message: 'Open your image in the browser?',
-					buttonNames: ['Yes', 'No']
-				});
-				confirm.addEventListener('click', function(conEvt) {
-					//if the index selected was 0 (yes) then open in safari
-					Ti.API.info(conEvt.index);
-					if(conEvt.index === 0) {
-						//open our uploaded image in safari
-						Ti.Platform.openURL(url);
-					}
-					//reset the upload button
-					self.children[0].hide(); //hide the status bar
-					self.children[1].hide(); //hide the status label
-					self.children[2].show(); //show the upload button again
-					androidUploadProgress = 0; //reset the android progress value
-				});
-				confirm.show();
-			}
-			else {
-				alert('Whoops, something failed in your upload script.');
-				self.children[0].hide(); //hide the status bar
-				self.children[1].hide(); //hide the status label
-				self.children[2].show(); //show the upload button again
-				androidUploadProgress = 0; //reset the android progress value
-			}
-		};
-		xhr.onsendstream = function(e){
-			Ti.API.info('ONSENDSTREAM - PROGRESS: ' + e.progress);
-		};
-		// open the client
-		xhr.open('POST', serverUrl); //the server location comes from the 'strings.xml' file 
-		// send the data
-		xhr.send({
-			media: media
-		});
-	}
 	function UploadPhotoToServer2(media) {
 		if (Titanium.Network.online == true) {
 			self.children[0].show(); //show the uploading slider progress bar
@@ -245,11 +192,11 @@ function FirstView() {
 			self.children[1].show(); //show the uploading label
 			self.children[1].text = 'Uploading photo, please wait...'; //set the label to default value
 			self.children[2].hide(); //hide the select photo button
+			sendPhoto(media, self);
 		}
 		else {
 			alert('You must have a valid Internet connection in order to upload this photo.');
 		}
-		sendPhoto(media);
 	}
 	return self;
 };
