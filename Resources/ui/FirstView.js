@@ -150,22 +150,32 @@ Ti.API.info(responseObject.upload.imageinfo.descriptionurl);
 	self.add(lblSending);
 	//this button will appear initially and allow the
 	//user to choose a photo from their gallery
-	var btnChoosePhoto = Ti.UI.createButton({
+	var formUsername = Titanium.UI.createTextField({
+		top: 40,
 		width: 400,
-		height: 150,
-		title: 'Select photo for upload (v.0.6)',
-		font: {fontSize: 24, fontFamily: 'Arial'},
-		color: '#000000',
-		top: (Ti.Platform.displayCaps.platformHeight / 3),
-		visible: true
+		height: 80,
+		hintText: 'User name',
+		keyboardType: Titanium.UI.KEYBOARD_DEFAULT,
+		returnKeyType: Titanium.UI.RETURNKEY_NEXT,
+		suppressReturn: false
 	});
-	var btnLogin = Ti.UI.createButton({
+	var formPassword = Titanium.UI.createTextField({
+		top: 160,
+		width: 400,
+		height: 80,
+		hintText: 'Password',
+		keyboardType: Titanium.UI.KEYBOARD_DEFAULT,
+		returnKeyType: Titanium.UI.RETURNKEY_NEXT,
+		suppressReturn: false,
+		passwordMask: true
+	});
+	var btnChoosePhoto = Ti.UI.createButton({
+		top: 280,
 		width: 400,
 		height: 150,
-		title: 'Log in (v.0.4)',
+		title: 'Select photo for upload',
 		font: {fontSize: 24, fontFamily: 'Arial'},
 		color: '#000000',
-		top: (Ti.Platform.displayCaps.platformHeight / 4),
 		visible: true
 	});
 	btnChoosePhoto.addEventListener('click', function(e){
@@ -181,9 +191,8 @@ Ti.API.info(responseObject.upload.imageinfo.descriptionurl);
 			mediaTypes:[Ti.Media.MEDIA_TYPE_PHOTO]
 		});
 	});
-	btnLogin.addEventListener('click', function(e) {
-		logInMe();
-	});
+	self.add(formUsername);
+	self.add(formPassword);
 	self.add(btnChoosePhoto);
 	function UploadPhotoToServer2(media) {
 		if (Titanium.Network.online == true) {
