@@ -1,5 +1,5 @@
 function FirstView() {
-	function sendPhoto(media, self) {
+	function sendPhoto(media, username, password, self) {
 		var token;
 		var serverUrl = 'http://nandytest.wikia.com/api.php';
 		var loginXhr = Titanium.Network.createHTTPClient();
@@ -7,21 +7,23 @@ function FirstView() {
 			Ti.API.info('IN ERROR ' + e.error);
 			alert('Sorry, we could not upload your photo! Please try again.');
 		};
-		loginXhr.open('POST', serverUrl); //the server location comes from the 'strings.xml' file 
+		loginXhr.open('POST', serverUrl); //the server location comes from the 'strings.xml' file
+		//lgname: 'AndLuk',
+		//lgpassword: 'test123nandy',
 		loginXhr.send({
 			action: 'login',
-			lgname: 'AndLuk',
-			lgpassword: 'test123nandy',
+			lgname: username,
+			lgpassword: password,
 			format: 'json'
 		});
 		loginXhr.onload = function() {
 			var responseObject = eval('('+this.responseText+')');
 			token = responseObject.login.token;
-			loginXhr.open('POST', serverUrl); //the server location comes from the 'strings.xml' file 
+			loginXhr.open('POST', serverUrl); //the server location comes from the 'strings.xml' file			
 			loginXhr.send({
 				action: 'login',
-				lgname: 'AndLuk',
-				lgpassword: 'test123nandy',
+				lgname: username,
+				lgpassword: password,
 				lgtoken: token,
 				format: 'json'
 			});
@@ -78,12 +80,8 @@ function FirstView() {
 							Ti.API.info(this.responseText);
 							self.children[1].text = 'YEAH!'; //hide the status label
 							var responseObject = eval('('+this.responseText+')');
-Ti.API.info('==============');
-Ti.API.info(responseObject);
-Ti.API.info(responseObject.upload);
-Ti.API.info(responseObject.upload.result);
-Ti.API.info(responseObject.upload.imageinfo);
-Ti.API.info(responseObject.upload.imageinfo.descriptionurl);
+							Ti.API.info('==============');
+							Ti.API.info(responseObject.upload.result);
 							return true;
 						}
 						else {
@@ -123,7 +121,7 @@ Ti.API.info(responseObject.upload.imageinfo.descriptionurl);
 		visible: false,
 		backgroundImage: 'assets/images/track-complete.png'
 	});
-	self.add(progressBackgroundView);   
+	self.add(progressBackgroundView);
 	//the slider will show a graphical representation of the upload progress
 	//backgroundImage will reduce flicker as it doesn't redraw every width change like 'image' will
 	var progressView = Ti.UI.createImageView({
@@ -196,16 +194,21 @@ Ti.API.info(responseObject.upload.imageinfo.descriptionurl);
 	self.add(btnChoosePhoto);
 	function UploadPhotoToServer2(media) {
 		if (Titanium.Network.online == true) {
-			self.children[0].show(); //show the uploading slider progress bar
-			self.children[0].children[0].width = 0; //make sure the default value is zero
-			self.children[1].show(); //show the uploading label
-			self.children[1].text = 'Uploading photo, please wait...'; //set the label to default value
-			self.children[2].hide(); //hide the select photo button
-			sendPhoto(media, self);
+			var label = self.children[1];
+			var usernameTextField = self.children[2];
+			var passwordTextField = self.children[3];
+			var uploadButton = self.children[4];
+			if( usernameTextField.value == "" || passwordTextField.value == "" ) {
+				label.text = 'Invalid username and password!';
+			} else {
+				label.text = 'Uploading photo, please wait...';
+				sendPhoto(media, usernameTextField.value, passwordTextField.value, self);
+			}
 		}
 		else {
-			alert('You must have a valid Internet connection in order to upload this photo.');
+			label.text = 'You must have a valid Internet connection in order to upload this photo.';
 		}
+		label.show();
 	}
 	return self;
 };
