@@ -1,21 +1,33 @@
 //Application Window Component Constructor
-function ApplicationWindow() {
-	//load component dependencies
-	var FirstView = require('ui/FirstView');
-		
-	//create component instance
-	var self = Ti.UI.createWindow({
-		backgroundColor:'#ffffff',
-		navBarHidden:true,
-		exitOnClose:true
+function ApplicationWindow(WikiaApp) {
+	this.WikiaApp = WikiaApp;
+	this.window = Ti.UI.createWindow({
+		backgroundColor: '#ffffff',
+		navBarHidden: true,
+		exitOnClose: true
 	});
-		
-	//construct UI
-	var firstView = new FirstView();
-	self.add(firstView);
+};
+
+ApplicationWindow.prototype.init = function() {
+	var MainView = require('ui/MainView');
+	//todo: would be nice to find a way not to pass WikiaApp everywhere...
+	this.mainView = new MainView(this.WikiaApp);
+	this.window.add(this.mainView);
 	
-	return self;
+	var LoginView = require('ui/LoginView');
+	//todo: would be nice to find a way not to pass WikiaApp everywhere...
+	this.loginView = new LoginView(this.WikiaApp);
+	this.window.add(this.loginView);
+	
+	this.window.open();
 }
 
-//make constructor function the public component interface
+ApplicationWindow.prototype.getMainView = function() {
+	return this.mainView;
+};
+
+ApplicationWindow.prototype.getLoginView = function() {
+	return this.loginView;
+};
+
 module.exports = ApplicationWindow;
