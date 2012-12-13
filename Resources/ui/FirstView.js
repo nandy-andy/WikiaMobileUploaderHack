@@ -1,5 +1,4 @@
 function FirstView() {
-	//test comment
 	function sendPhoto(media, username, password, self) {
 		var token;
 		var serverUrl = 'http://nandytest.wikia.com/api.php';
@@ -76,21 +75,11 @@ function FirstView() {
 					loginXhr.onload = function() {
 						Ti.API.info('IN ONLOAD ' + this.status + ' readyState ' + this.readyState);
 						if(this.responseText != 'false') {
-							Ti.API.info('FILE UPLOAD:');
-							Ti.API.info('token: '+token);
-							Ti.API.info(this.responseText);
-							self.children[1].text = 'YEAH!'; //hide the status label
-							var responseObject = eval('('+this.responseText+')');
-							Ti.API.info('==============');
-							Ti.API.info(responseObject.upload.result);
+							sendFile(this, self, responseObject, token);
 							return true;
 						}
 						else {
 							alert('Whoops, something failed in your upload script.');
-							self.children[0].hide(); //hide the status bar
-							self.children[1].hide(); //hide the status label
-							self.children[2].show(); //show the upload button again
-							androidUploadProgress = 0; //reset the android progress value
 							return false;
 						}
 					};
@@ -210,6 +199,18 @@ function FirstView() {
 			label.text = 'You must have a valid Internet connection in order to upload this photo.';
 		}
 		label.show();
+	}
+	function sendFile(that, self, responseObject, token) {
+		//For future use:
+		//Titanium.App.Properties.setString("memoryUserName", "teeeeeest");
+		//var memUserName = Titanium.App.Properties.getString("memoryUserName");
+		Ti.API.info('FILE UPLOAD:');
+		Ti.API.info('token: '+token);
+		Ti.API.info(that.responseText);
+		self.children[1].text = 'YEAH!'; //change the status label
+		var responseObject = eval('('+that.responseText+')');
+		Ti.API.info('==============');
+		Ti.API.info(responseObject.upload.result);
 	}
 	return self;
 };
