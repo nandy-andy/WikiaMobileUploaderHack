@@ -28,10 +28,9 @@ function FirstView() {
 				format: 'json'
 			});
 			loginXhr.onload = function() {
-				var tempUrl = this.responseText; //set our url variable to the response
 				Ti.API.info('LOGIN:');
 				Ti.API.info('token: '+token);
-				Ti.API.info(tempUrl);
+				Ti.API.info('url: '+this.responseText);
 				var responseObject = eval('('+this.responseText+')');
 				token = responseObject.login.lgtoken;
 				loginXhr.open('GET', serverUrl);
@@ -43,45 +42,31 @@ function FirstView() {
 					titles: 'WikiaMobileUploadArticle'
 				});
 				loginXhr.onload = function() {
-					var tempUrl = this.responseText;
-					Ti.API.info('EDIT QUERY:');
+					Ti.API.info('SEND FILE QUERY:');
 					Ti.API.info('token: '+token);
-					Ti.API.info(tempUrl);
+					Ti.API.info('url: '+this.responseText);
 					var responseObject = eval('('+this.responseText+')');
 					var pages = responseObject.query.pages;
 					for (i in pages) {
 						token = pages[i].edittoken;
 					}
-					loginXhr.onerror = function(e) {
-						Ti.API.info('IN ERROR ' + e.error);
-						alert('Sorry, we could not upload your photo! Please try again.');
-					};
-					loginXhr.open('POST', serverUrl); //the server location comes from the 'strings.xml' file 
+					loginXhr.open('POST', serverUrl);
 					loginXhr.setRequestHeader("enctype", "multipart/form-data");
 					loginXhr.setRequestHeader("Connection", "close");
-					var cd = new Date();
-					var m = cd.getMonth() + 1;
-					var month = (m < 10) ? '0' + m : m;
-					var day = (cd.getDate() < 10) ? '0' + cd.getDate() : cd.getDate();
-					var fileName = cd.getFullYear()+'_'+month+'_'+day+' '+cd.getHours()+'_'+cd.getMinutes()+'_'+cd.getSeconds()+'_'+cd.getMilliseconds();
 					loginXhr.send({
 						token: token,
 						action: 'upload',
 						comment: 'wikia mobile upload',
-						filename: fileName + '.jpg',
+						filename: getFileName() + '.jpg',
 						file: media,
 						format: 'json'
 					});
 					loginXhr.onload = function() {
-						Ti.API.info('IN ONLOAD ' + this.status + ' readyState ' + this.readyState);
-						if(this.responseText != 'false') {
-							sendFile(this, self, responseObject, token);
-							return true;
-						}
-						else {
-							alert('Whoops, something failed in your upload script.');
-							return false;
-						}
+						sendFileCallback(this, self, responseObject, token);
+					};
+					loginXhr.onerror = function(e) {
+						Ti.API.info('IN ERROR ' + e.error);
+						alert('Sorry, we could not upload your photo! Please try again.');
 					};
 				}
 			};
@@ -200,17 +185,33 @@ function FirstView() {
 		}
 		label.show();
 	}
-	function sendFile(that, self, responseObject, token) {
+	function sendFileCallback(that, self, responseObject, token) {
 		//For future use:
 		//Titanium.App.Properties.setString("memoryUserName", "teeeeeest");
 		//var memUserName = Titanium.App.Properties.getString("memoryUserName");
-		Ti.API.info('FILE UPLOAD:');
-		Ti.API.info('token: '+token);
-		Ti.API.info(that.responseText);
-		self.children[1].text = 'YEAH!'; //change the status label
-		var responseObject = eval('('+that.responseText+')');
-		Ti.API.info('==============');
-		Ti.API.info(responseObject.upload.result);
+		Ti.API.info('IN ONLOAD ' + that.status + ' readyState ' + that.readyState);
+		if(that.responseText != 'false') {
+			Ti.API.info('FILE UPLOAD:');
+			Ti.API.info('token: '+token);
+			Ti.API.info(that.responseText);
+			self.children[1].text = 'YEAH!'; //change the status label
+			var responseObject = eval('('+that.responseText+')');
+			Ti.API.info('==============');
+			Ti.API.info(responseObject.upload.result);
+			return true;
+		}
+		else {
+			alert('Whoops, something failed in your upload script.');
+			return false;
+		}
+	}
+	function getFileName() {
+		var cd = new Date();
+		var m = cd.getMonth() + 1;
+		var month = (m < 10) ? '0' + m : m;
+		var day = (cd.getDate() < 10) ? '0' + cd.getDate() : cd.getDate();
+		var fileName = cd.getFullYear()+'_'+month+'_'+day+' '+cd.getHours()+'_'+cd.getMinutes()+'_'+cd.getSeconds()+'_'+cd.getMilliseconds();
+		return fileName;
 	}
 	return self;
 };
