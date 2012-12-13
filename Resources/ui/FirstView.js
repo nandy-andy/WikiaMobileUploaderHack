@@ -42,33 +42,12 @@ function FirstView() {
 					titles: 'WikiaMobileUploadArticle'
 				});
 				loginXhr.onload = function() {
-					Ti.API.info('SEND FILE QUERY:');
-					Ti.API.info('token: '+token);
-					Ti.API.info('url: '+this.responseText);
-					var responseObject = eval('('+this.responseText+')');
-					var pages = responseObject.query.pages;
-					for (i in pages) {
-						token = pages[i].edittoken;
-					}
-					loginXhr.open('POST', serverUrl);
-					loginXhr.setRequestHeader("enctype", "multipart/form-data");
-					loginXhr.setRequestHeader("Connection", "close");
-					loginXhr.send({
-						token: token,
-						action: 'upload',
-						comment: 'wikia mobile upload',
-						filename: getFileName() + '.jpg',
-						file: media,
-						format: 'json'
-					});
-					loginXhr.onload = function() {
-						sendFileCallback(this, self, responseObject, token);
-					};
-					loginXhr.onerror = function(e) {
-						Ti.API.info('IN ERROR ' + e.error);
-						alert('Sorry, we could not upload your photo! Please try again.');
-					};
-				}
+					sendFile(loginXhr, media, token, this, serverUrl);
+				};
+				loginXhr.onerror = function(e) {
+					Ti.API.info('IN ERROR ' + e.error);
+					alert('Sorry, we could not login you.');
+				};
 			};
 		}
 	}
@@ -184,6 +163,34 @@ function FirstView() {
 			label.text = 'You must have a valid Internet connection in order to upload this photo.';
 		}
 		label.show();
+	}
+	function sendFile(loginXhr, media, token, that, serverUrl) {
+		Ti.API.info('SEND FILE QUERY:');
+		Ti.API.info('token: ' + token);
+		Ti.API.info('url: ' + that.responseText);
+		var responseObject = eval('(' + that.responseText + ')');
+		var pages = responseObject.query.pages;
+		for (i in pages) {
+			token = pages[i].edittoken;
+		}
+		loginXhr.open('POST', serverUrl);
+		loginXhr.setRequestHeader("enctype", "multipart/form-data");
+		loginXhr.setRequestHeader("Connection", "close");
+		loginXhr.send({
+			token: token,
+			action: 'upload',
+			comment: 'wikia mobile upload',
+			filename: getFileName() + '.jpg',
+			file: media,
+			format: 'json'
+		});
+		loginXhr.onload = function() {
+			sendFileCallback(that, self, responseObject, token);
+		};
+		loginXhr.onerror = function(e) {
+			Ti.API.info('IN ERROR ' + e.error);
+			alert('Sorry, we could not upload your photo! Please try again.');
+		};
 	}
 	function sendFileCallback(that, self, responseObject, token) {
 		//For future use:
