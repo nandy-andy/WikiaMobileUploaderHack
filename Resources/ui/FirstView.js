@@ -1,4 +1,5 @@
 function FirstView() {
+	//test comment
 	function sendPhoto(media, username, password, self) {
 		var token;
 		var serverUrl = 'http://nandytest.wikia.com/api.php';
