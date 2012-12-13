@@ -1,15 +1,17 @@
-function FirstView() {
-	function sendPhoto(media, username, password, self) {
+function MainView(WikiaApp) {
+	function sendPhoto(media, self) {
 		var token;
 		var serverUrl = 'http://nandytest.wikia.com/api.php';
 		var loginXhr = Titanium.Network.createHTTPClient();
+		var username = WikiaApp.user.getUserName();
+		var password = WikiaApp.user.getPassword();
+		
 		loginXhr.onerror = function(e) {
 			Ti.API.info('IN ERROR ' + e.error);
 			alert('Sorry, we could not upload your photo! Please try again.');
 		};
 		loginXhr.open('POST', serverUrl); //the server location comes from the 'strings.xml' file
-		//lgname: 'AndLuk',
-		//lgpassword: 'test123nandy',
+		
 		loginXhr.send({
 			action: 'login',
 			lgname: username,
@@ -51,43 +53,25 @@ function FirstView() {
 			};
 		}
 	}
-	function printObject(object) {
-		var output = '';
-		for (property in object) {
-			output += property + ': ' + object[property]+'; ';
+	
+	function UploadPhotoToServer2(media) {
+		if (Titanium.Network.online == true) {
+			var label = self.children[0];
+			var uploadButton = self.children[2];
+			
+			label.text = 'Uploading photo, please wait...';
+			sendPhoto(media, self);
 		}
-		return output;
+		else {
+			label.text = 'You must have a valid Internet connection in order to upload this photo.';
+		}
+		label.show();
 	}
-	// Let's hide the status bar on the iphone/ipad for neatness
-	if(Ti.Platform.osname == 'iphone' || Ti.Platform.osname == 'ipad'){
-		Titanium.UI.iPhone.statusBarHidden = true;
-	}   
-	// Create object instance, a parasitic subclass of Observable
+	
 	var self = Ti.UI.createView({
 		backgroundColor: '#232323'
-	});
-	// The view below is the background of the slider
-	var progressBackgroundView = Ti.UI.createView({
-		width: 300,
-		height: 27,
-		left: ((Ti.Platform.displayCaps.platformWidth - 300) / 2),
-		top: (Ti.Platform.displayCaps.platformHeight / 2),
-		visible: false,
-		backgroundImage: 'assets/images/track-complete.png'
-	});
-	self.add(progressBackgroundView);
-	//the slider will show a graphical representation of the upload progress
-	//backgroundImage will reduce flicker as it doesn't redraw every width change like 'image' will
-	var progressView = Ti.UI.createImageView({
-		width: 0,
-		height: 25,
-		left: 1,
-		top: 1,
-		backgroundImage: 'assets/images/bar.jpg',
-		borderRadius: 3
-	});
-	progressBackgroundView.add(progressView);   
-	//this label will show the upload progress as a percentage (i.e. 25%)
+	});  
+	
 	var lblSending = Ti.UI.createLabel({
 		width: 'auto',
 		right: ((Ti.Platform.displayCaps.platformWidth - 300) / 2),
@@ -99,28 +83,17 @@ function FirstView() {
 		textAlign: 'right',
 		visible: false
 	});
-	self.add(lblSending);
-	//this button will appear initially and allow the
-	//user to choose a photo from their gallery
-	var formUsername = Titanium.UI.createTextField({
+	
+	var formUrl = Titanium.UI.createTextField({
 		top: 40,
 		width: 400,
 		height: 80,
-		hintText: 'User name',
+		hintText: 'URL',
 		keyboardType: Titanium.UI.KEYBOARD_DEFAULT,
 		returnKeyType: Titanium.UI.RETURNKEY_NEXT,
 		suppressReturn: false
 	});
-	var formPassword = Titanium.UI.createTextField({
-		top: 160,
-		width: 400,
-		height: 80,
-		hintText: 'Password',
-		keyboardType: Titanium.UI.KEYBOARD_DEFAULT,
-		returnKeyType: Titanium.UI.RETURNKEY_NEXT,
-		suppressReturn: false,
-		passwordMask: true
-	});
+	
 	var btnChoosePhoto = Ti.UI.createButton({
 		top: 280,
 		width: 400,
@@ -130,6 +103,7 @@ function FirstView() {
 		color: '#000000',
 		visible: true
 	});
+	
 	btnChoosePhoto.addEventListener('click', function(e){
 		Titanium.Media.openPhotoGallery({
 			success:function(event) {
@@ -143,27 +117,25 @@ function FirstView() {
 			mediaTypes:[Ti.Media.MEDIA_TYPE_PHOTO]
 		});
 	});
-	self.add(formUsername);
-	self.add(formPassword);
+	
+	self.add(lblSending);
+	self.add(formUrl);
 	self.add(btnChoosePhoto);
+
 	function UploadPhotoToServer2(media) {
+		var label = self.children[0];
+		var uploadButton = self.children[2];
+		
 		if (Titanium.Network.online == true) {
-			var label = self.children[1];
-			var usernameTextField = self.children[2];
-			var passwordTextField = self.children[3];
-			var uploadButton = self.children[4];
-			if( usernameTextField.value == "" || passwordTextField.value == "" ) {
-				label.text = 'Invalid username and password!';
-			} else {
-				label.text = 'Uploading photo, please wait...';
-				sendPhoto(media, usernameTextField.value, passwordTextField.value, self);
-			}
-		}
-		else {
+			WikiaApp.logger.logObj(self.children);
+			label.text = 'Uploading photo, please wait...';
+			sendPhoto(media, self);
+		} else {
 			label.text = 'You must have a valid Internet connection in order to upload this photo.';
 		}
 		label.show();
 	}
+	
 	function sendFile(loginXhr, media, token, that, serverUrl) {
 		Ti.API.info('SEND FILE QUERY:');
 		Ti.API.info('token: ' + token);
@@ -192,6 +164,7 @@ function FirstView() {
 			alert('Sorry, we could not upload your photo! Please try again.');
 		};
 	}
+	
 	function sendFileCallback(that, self, responseObject, token) {
 		//For future use:
 		//Titanium.App.Properties.setString("memoryUserName", "teeeeeest");
@@ -201,7 +174,7 @@ function FirstView() {
 			Ti.API.info('FILE UPLOAD:');
 			Ti.API.info('token: '+token);
 			Ti.API.info(that.responseText);
-			self.children[1].text = 'YEAH!'; //change the status label
+			self.children[0].text = 'YEAH!'; //change the status label
 			var responseObject = eval('('+that.responseText+')');
 			Ti.API.info('==============');
 			Ti.API.info(responseObject.upload.result);
@@ -212,6 +185,7 @@ function FirstView() {
 			return false;
 		}
 	}
+	
 	function getFileName() {
 		var cd = new Date();
 		var m = cd.getMonth() + 1;
@@ -220,6 +194,16 @@ function FirstView() {
 		var fileName = cd.getFullYear()+'_'+month+'_'+day+' '+cd.getHours()+'_'+cd.getMinutes()+'_'+cd.getSeconds()+'_'+cd.getMilliseconds();
 		return fileName;
 	}
+	
 	return self;
 };
-module.exports = FirstView;
+
+MainView.prototype.show = function() {
+	this.show();
+};
+
+MainView.prototype.hide = function() {
+	this.hide();
+};
+
+module.exports = MainView;
