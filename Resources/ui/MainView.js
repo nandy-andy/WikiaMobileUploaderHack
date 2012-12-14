@@ -166,9 +166,6 @@ function MainView(WikiaApp) {
 	}
 	
 	function sendFileCallback(that, self, responseObject, token) {
-		//For future use:
-		//Titanium.App.Properties.setString("memoryUserName", "teeeeeest");
-		//var memUserName = Titanium.App.Properties.getString("memoryUserName");
 		Ti.API.info('IN ONLOAD ' + that.status + ' readyState ' + that.readyState);
 		if(that.responseText != 'false') {
 			Ti.API.info('FILE UPLOAD:');
@@ -206,4 +203,4 @@ MainView.prototype.hide = function() {
 	this.hide();
 };
 
-module.exports = MainView;
+exports.MainView = MainView;

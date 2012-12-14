@@ -27,4 +27,4 @@ Logger.prototype.logObj = function(object) {
 	Ti.API.debug('== /DEBUG ==');
 };
 
-module.exports = Logger;
+exports.Logger = Logger;

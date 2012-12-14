@@ -1,4 +1,7 @@
 function User(userName, password) {
+	this.APP_PROPS_USER_NAME_KEY = 'WikiaAppUserName';
+	this.APP_PROPS_PASSWORD_KEY = 'WikiaAppPassword';
+	
 	this.userName = userName;
 	this.password = password;
 	this.session = '';
@@ -10,7 +13,11 @@ User.prototype.getUserName = function() {
 	return this.userName;
 }
 
-User.prototype.setUserName = function(userName) {
+User.prototype.setUserName = function(userName, addToAppProps) {
+	if( addToAppProps ) {
+		Titanium.App.Properties.setString(this.APP_PROPS_USER_NAME_KEY, userName);
+	}
+	
 	this.userName = userName;
 }
 
@@ -18,8 +25,20 @@ User.prototype.getPassword = function(password) {
 	return this.password;
 }
 
-User.prototype.setPassword = function(password) {
+User.prototype.setPassword = function(password, addToAppProps) {
+	if( addToAppProps ) {
+		Titanium.App.Properties.setString(this.APP_PROPS_PASSWORD_KEY, password);
+	}
+	
 	this.password = password;
+}
+
+User.prototype.getUserNameFromAppProps = function() {
+	return Titanium.App.Properties.getString(this.APP_PROPS_USER_NAME_KEY);
+}
+
+User.prototype.getPasswordFromAppProps = function() {
+	return Titanium.App.Properties.getString(this.APP_PROPS_PASSWORD_KEY);
 }
 
 User.prototype.isLoggedIn = function() {
@@ -33,6 +52,12 @@ User.prototype.isLoggedToAPI = function() {
 User.prototype.logIn = function() {
 	var result = 1;
 	
+	/*
+	if( Titanium.Network.online !== true ) {
+		return -3;
+	}
+	*/
+	
 	if( this.userName === '' || typeof(this.userName) !== 'string' ) {
 		return -1;
 	} else if( this.password === '' || typeof(this.userName) !== 'string' ) {
@@ -44,4 +69,4 @@ User.prototype.logIn = function() {
 	return result;
 }
 
-module.exports = User;
+exports.User = User;
