@@ -5,6 +5,7 @@ function ApplicationWindow() {
 		
 	this.user = new User(); 
 	this.logger = new Logger();
+	this.xhrHandler = false;
 	this.window = Ti.UI.createWindow({
 		backgroundColor: '#ffffff',
 		navBarHidden: true,
@@ -30,7 +31,7 @@ ApplicationWindow.prototype.init = function() {
 		} else {
 			self.mainView.hide();
 			self.loginView.view.show();
-			self.loginView.view.handleFailedLogin(e.preValidation);
+			self.loginView.handleFailedLogin(e.preValidation);
 		}
 	});
 	
@@ -38,14 +39,6 @@ ApplicationWindow.prototype.init = function() {
 	this.window.add(this.loginView.view);
 	this.window.open();
 }
-
-ApplicationWindow.prototype.getMainView = function() {
-	return this.mainView;
-};
-
-ApplicationWindow.prototype.getLoginView = function() {
-	return this.loginView;
-};
 
 ApplicationWindow.prototype.getUser = function() {
 	return this.user;
