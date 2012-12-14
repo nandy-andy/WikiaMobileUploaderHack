@@ -82,15 +82,22 @@ function MainView(WikiaApp) {
 	});
 
 	btnChoosePhoto.addEventListener('click', function(e){
+		WikiaApp.logger.log("btnChoosePhoto clicked!!");
 		Titanium.Media.openPhotoGallery({
-			success:function(event) {
+			success: function(event) {
+				WikiaApp.logger.log('Image type is: ' + event.mediaType);
 				Ti.API.debug('Our type was: '+event.mediaType);
 				if(event.mediaType == Ti.Media.MEDIA_TYPE_PHOTO) {
 					UploadPhotoToServer2(event.media);
 				}
 			},
-			cancel:function() {},
-			error:function(err) {Ti.API.error(err);},
+			cancel: function() {
+				WikiaApp.logger.log('openPhotoGallery cancel');
+			},
+			error: function(err) {
+				WikiaApp.logger.log('openPhotoGallery error');
+				Ti.API.error(err);
+			},
 			mediaTypes:[Ti.Media.MEDIA_TYPE_PHOTO]
 		});
 	});
@@ -106,7 +113,6 @@ function MainView(WikiaApp) {
 	function UploadPhotoToServer2(media) {
 		var label = self.children[4];
 		var uploadButton = self.children[2];
-		
 		if (Titanium.Network.online == true) {
 			WikiaApp.logger.logObj(self.children);
 			label.text = 'Uploading photo, please wait...';
@@ -188,13 +194,12 @@ function MainView(WikiaApp) {
 			for (var i = 0; i < recentArray.length; i++) {
 				data[i]=Ti.UI.createPickerRow({title: recentArray[i]});
 			}
+			data[1] = Ti.UI.createPickerRow({title: "test1"});
+			data[2] = Ti.UI.createPickerRow({title: "test2"});
 			picker.add(data);
 			picker.selectionIndicator = true;
 			picker.addEventListener('change', function(e) {
-				//formUrl.setValue(e.value.toLocaleString());
-				//self.children[1] = e.value.toLocaleString();
-				//alert('selected!');
-				//alert(e.value.toLocaleString());
+				self.children[1].value = e.selectedValue[0];
 			});
 			return picker;
 		}
