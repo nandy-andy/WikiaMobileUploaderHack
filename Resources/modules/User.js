@@ -52,17 +52,13 @@ User.prototype.isLoggedToAPI = function() {
 User.prototype.logIn = function() {
 	var result = 1;
 	
-	/*
-	if( Titanium.Network.online !== true ) {
-		return -3;
-	}
-	*/
-	
 	if( this.userName === '' || typeof(this.userName) !== 'string' ) {
 		return -1;
 	} else if( this.password === '' || typeof(this.userName) !== 'string' ) {
 		return -2;
 	}
+	
+	//todo: send API request and if username&password invalid return -3
 	
 	this.loggedIn = true;
 	

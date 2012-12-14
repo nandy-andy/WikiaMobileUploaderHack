@@ -18,9 +18,11 @@ ApplicationWindow.prototype.init = function() {
 	
 	this.mainView = new MainView(this);
 	this.loginView = new LoginView(this);
+	this.loginView.doCheckInternetConnection();
+	this.loginView.doFillFieldsWithAppData();
 	
 	this.window.add(this.mainView);
-	this.window.add(this.loginView);
+	this.window.add(this.loginView.view);
 	this.window.open();
 }
 
