@@ -1,6 +1,10 @@
 //Application Window Component Constructor
-function ApplicationWindow(WikiaApp) {
-	this.WikiaApp = WikiaApp;
+function ApplicationWindow() {
+	var User = require('modules/User').User,
+		Logger = require('modules/Logger').Logger;
+		
+	this.user = new User(); 
+	this.logger = new Logger();
 	this.window = Ti.UI.createWindow({
 		backgroundColor: '#ffffff',
 		navBarHidden: true,
@@ -9,16 +13,14 @@ function ApplicationWindow(WikiaApp) {
 };
 
 ApplicationWindow.prototype.init = function() {
-	var MainView = require('ui/MainView');
-	//todo: would be nice to find a way not to pass WikiaApp everywhere...
-	this.mainView = new MainView(this.WikiaApp);
+	var MainView = require('ui/MainView').MainView,
+		LoginView = require('ui/LoginView').LoginView;
+	
+	this.mainView = new MainView(this);
+	this.loginView = new LoginView(this);
+	
 	this.window.add(this.mainView);
-	
-	var LoginView = require('ui/LoginView');
-	//todo: would be nice to find a way not to pass WikiaApp everywhere...
-	this.loginView = new LoginView(this.WikiaApp);
 	this.window.add(this.loginView);
-	
 	this.window.open();
 }
 
@@ -30,4 +32,12 @@ ApplicationWindow.prototype.getLoginView = function() {
 	return this.loginView;
 };
 
-module.exports = ApplicationWindow;
+ApplicationWindow.prototype.getUser = function() {
+	return this.user;
+};
+
+ApplicationWindow.prototype.getLogger = function() {
+	return this.logger;
+};
+
+exports.ApplicationWindow = ApplicationWindow;
