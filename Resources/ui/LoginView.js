@@ -10,34 +10,6 @@ function LoginView(WikiaApp) {
 		backgroundColor: '#232323'
 	});
 	
-	/**
-	 * @private
- 	 * @param {Titanium.UI.Label} statusLabel
- 	 * @param {Integer} result
-	 */
-	function handleFailedLogin(statusLabel, result) {
-		var output = '';
-		
-		switch(result) {
-			case 1:
-				//success
-				break;
-			case -1:
-			case -2:
-				output = 'Invalid username or password. Please try again.';
-				break;
-			case -3:
-				output = 'Your device needs to be connected to Internet while using this application.';
-				break;
-			default:
-				output = 'User autherization error...';
-				break;
-		}
-		
-		statusLabel.setText(output);
-		statusLabel.show();
-	}
-	
 	//definitions of various controlls
 	var fieldUsername = Titanium.UI.createTextField({
 		top: 40,
@@ -81,20 +53,19 @@ function LoginView(WikiaApp) {
 		visible: true
 	});
 	
-	//event listeners
 	btnLogin.addEventListener('click', function(e) {
-		var user = WikiaApp.getUser();
-		var username = self.getUserNameField().value;
-		var password = self.getPasswordField().value;
+		var user = WikiaApp.getUser(),
+			username = self.getUserNameField().value,
+			password = self.getPasswordField().value,
+			result = user.preLogInValidation(username, password);
 		
-		user.setUserName(username, true);
-		user.setPassword(password, true);
-		var result = user.logIn();
-		
-		if( user.isLoggedIn() ) {
-			self.view.hide();
+		if( result === 1 ) {
+			self.app.window.fireEvent('wikiaAppUserLogInStateChanged', {
+				currentState: (user.isLoggedIn() ? user.LOGGED_IN : user.LOGGED_OFF),
+				preValidation: result
+			});
 		} else {
-			handleFailedLogin(self.getLabelStatus(), result);
+			self.handleFailedLogin(result);
 		}
 	});
 	
@@ -172,5 +143,29 @@ LoginView.prototype.enableForm = function() {
 	this.getPasswordField().setEnabled(true);
 	this.getLoginButton().setEnabled(true);
 };
+
+LoginView.prototype.handleFailedLogin = function(result) {
+	var output = '';
+	
+	switch(result) {
+		case 1:
+			//success
+			break;
+		case -1:
+		case -2:
+			output = 'Invalid username or password. Please try again.';
+			break;
+		case -3:
+			output = 'Your device needs to be connected to Internet while using this application.';
+			break;
+		default:
+			output = 'User autherization error...';
+			break;
+	}
+	
+	var statusLabel = this.getLabelStatus();
+	statusLabel.setText(output);
+	statusLabel.show();
+}
 
 exports.LoginView = LoginView;

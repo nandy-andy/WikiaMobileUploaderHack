@@ -13,13 +13,26 @@ function ApplicationWindow() {
 };
 
 ApplicationWindow.prototype.init = function() {
-	var MainView = require('ui/MainView').MainView,
+	var self = this,
+		MainView = require('ui/MainView').MainView,
 		LoginView = require('ui/LoginView').LoginView;
 	
 	this.mainView = new MainView(this);
 	this.loginView = new LoginView(this);
 	this.loginView.doCheckInternetConnection();
 	this.loginView.doFillFieldsWithAppData();
+	
+	this.window.addEventListener('wikiaAppUserLogInStateChanged', function(e) {
+		if( e.currentState === self.user.LOGGED_IN ) {
+			self.loginView.view.hide();
+			self.mainView.show();
+			self.user.addToAppProps();
+		} else {
+			self.mainView.hide();
+			self.loginView.view.show();
+			self.loginView.view.handleFailedLogin(e.preValidation);
+		}
+	});
 	
 	this.window.add(this.mainView);
 	this.window.add(this.loginView.view);

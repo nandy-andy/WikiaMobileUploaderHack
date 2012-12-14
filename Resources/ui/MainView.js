@@ -1,4 +1,7 @@
 function MainView(WikiaApp) {
+	self = this;
+	this.app = WikiaApp;
+	
 	function sendPhoto(media, self) {
 		var token;
 		var serverUrl = 'http://nandytest.wikia.com/api.php';
