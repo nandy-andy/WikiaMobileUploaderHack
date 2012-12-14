@@ -8,13 +8,7 @@ function MainView(WikiaApp) {
 		var loginXhr = Titanium.Network.createHTTPClient();
 		var username = WikiaApp.user.getUserName();
 		var password = WikiaApp.user.getPassword();
-		
-		loginXhr.onerror = function(e) {
-			Ti.API.info('IN ERROR ' + e.error);
-			alert('Sorry, we could not upload your photo! Please try again.');
-		};
-		loginXhr.open('POST', serverUrl); //the server location comes from the 'strings.xml' file
-		
+		loginXhr.open('POST', serverUrl);
 		loginXhr.send({
 			action: 'login',
 			lgname: username,
@@ -24,7 +18,7 @@ function MainView(WikiaApp) {
 		loginXhr.onload = function() {
 			var responseObject = eval('('+this.responseText+')');
 			token = responseObject.login.token;
-			loginXhr.open('POST', serverUrl); //the server location comes from the 'strings.xml' file			
+			loginXhr.open('POST', serverUrl);
 			loginXhr.send({
 				action: 'login',
 				lgname: username,
@@ -33,42 +27,13 @@ function MainView(WikiaApp) {
 				format: 'json'
 			});
 			loginXhr.onload = function() {
-				Ti.API.info('LOGIN:');
-				Ti.API.info('token: '+token);
-				Ti.API.info('url: '+this.responseText);
-				var responseObject = eval('('+this.responseText+')');
-				token = responseObject.login.lgtoken;
-				loginXhr.open('GET', serverUrl);
-				loginXhr.send({
-					format: 'json',
-					action: 'query',
-					prop: 'info',
-					intoken: 'edit',
-					titles: 'WikiaMobileUploadArticle'
-				});
-				loginXhr.onload = function() {
-					sendFile(loginXhr, media, token, this, serverUrl);
-				};
-				loginXhr.onerror = function(e) {
-					Ti.API.info('IN ERROR ' + e.error);
-					alert('Sorry, we could not login you.');
-				};
+				loginRequest(token, this, loginXhr, media, serverUrl, self);
 			};
 		}
-	}
-	
-	function UploadPhotoToServer2(media) {
-		if (Titanium.Network.online == true) {
-			var label = self.children[0];
-			var uploadButton = self.children[2];
-			
-			label.text = 'Uploading photo, please wait...';
-			sendPhoto(media, self);
-		}
-		else {
-			label.text = 'You must have a valid Internet connection in order to upload this photo.';
-		}
-		label.show();
+		loginXhr.onerror = function(e) {
+			Ti.API.info('IN ERROR ' + e.error);
+			alert('Sorry, we could not upload your photo! Please try again.');
+		};
 	}
 	
 	var self = Ti.UI.createView({
@@ -110,7 +75,7 @@ function MainView(WikiaApp) {
 		top: 280,
 		width: 400,
 		height: 150,
-		title: 'Select photo for upload',
+		title: '(v.0.2) Select photo for upload',
 		font: {fontSize: 24, fontFamily: 'Arial'},
 		color: '#000000',
 		visible: true
@@ -133,13 +98,13 @@ function MainView(WikiaApp) {
 	self.add(lblDescription);
 	self.add(formUrl);
 	if (Titanium.App.Properties.getList('recentUrl')) {
-		self.add(renderPicker());
+		self.add(renderPicker(self));
 	}
 	self.add(btnChoosePhoto);
 	self.add(lblSending);
 
 	function UploadPhotoToServer2(media) {
-		var label = self.children[0];
+		var label = self.children[4];
 		var uploadButton = self.children[2];
 		
 		if (Titanium.Network.online == true) {
@@ -152,7 +117,7 @@ function MainView(WikiaApp) {
 		label.show();
 	}
 	
-	function sendFile(loginXhr, media, token, that, serverUrl) {
+	function sendFile(loginXhr, media, token, that, serverUrl, self) {
 		Ti.API.info('SEND FILE QUERY:');
 		Ti.API.info('token: ' + token);
 		Ti.API.info('response: ' + that.responseText);
@@ -173,6 +138,8 @@ function MainView(WikiaApp) {
 			format: 'json'
 		});
 		loginXhr.onload = function() {
+			//self.children[1].text = 'aaaaa';
+			//self.children[1].value = 'bbbb';
 			recentUrlAddUrl(serverUrl);
 			sendFileCallback(that, self, responseObject, token);
 		};
@@ -186,10 +153,10 @@ function MainView(WikiaApp) {
 		Ti.API.info('IN ONLOAD ' + that.status + ' readyState ' + that.readyState);
 		if(that.responseText != 'false') {
 			Ti.API.info('FILE UPLOAD:');
-			Ti.API.info('token: '+token);
+			Ti.API.info('token: ' + token);
 			Ti.API.info(that.responseText);
 			self.children[0].text = 'YEAH!'; //change the status label
-			var responseObject = eval('('+that.responseText+')');
+			var responseObject = eval('(' + that.responseText + ')');
 			Ti.API.info('==============');
 			Ti.API.info(responseObject.upload.result);
 			return true;
@@ -209,7 +176,7 @@ function MainView(WikiaApp) {
 		return fileName;
 	}
 
-	function renderPicker() {
+	function renderPicker(self) {
 		var picker = Ti.UI.createPicker({
 			top:170,
 			width: 400,
@@ -223,6 +190,12 @@ function MainView(WikiaApp) {
 			}
 			picker.add(data);
 			picker.selectionIndicator = true;
+			picker.addEventListener('change', function(e) {
+				//formUrl.setValue(e.value.toLocaleString());
+				//self.children[1] = e.value.toLocaleString();
+				//alert('selected!');
+				//alert(e.value.toLocaleString());
+			});
 			return picker;
 		}
 		else {
@@ -245,6 +218,29 @@ function MainView(WikiaApp) {
 			recentArray[0] = url;
 		}
 		Titanium.App.Properties.setList('recentUrl', recentArray);
+	}
+
+	function loginRequest(token, that, loginXhr, media, serverUrl, self) {
+		Ti.API.info('LOGIN:');
+		Ti.API.info('token: '+ token);
+		Ti.API.info('url: '+ that.responseText);
+		var responseObject = eval('('+ that.responseText+')');
+		token = responseObject.login.lgtoken;
+		loginXhr.open('GET', serverUrl);
+		loginXhr.send({
+			format: 'json',
+			action: 'query',
+			prop: 'info',
+			intoken: 'edit',
+			titles: 'WikiaMobileUploadArticle'
+		});
+		loginXhr.onload = function() {
+			sendFile(loginXhr, media, token, that, serverUrl, self);
+		};
+		loginXhr.onerror = function(e) {
+			Ti.API.info('IN ERROR ' + e.error);
+			alert('Sorry, we could not login you.');
+		};
 	}
 
 	return self;
