@@ -1,7 +1,7 @@
 function MainView(WikiaApp) {
 	self = this;
 	this.app = WikiaApp;
-	
+
 	function sendPhoto(media, self) {
 		var token;
 		var serverUrl = 'http://nandytest.wikia.com/api.php';
@@ -132,7 +132,9 @@ function MainView(WikiaApp) {
 
 	self.add(lblDescription);
 	self.add(formUrl);
-	self.add(renderPicker());
+	if (Titanium.App.Properties.getList('recentUrl')) {
+		self.add(renderPicker());
+	}
 	self.add(btnChoosePhoto);
 	self.add(lblSending);
 
@@ -153,7 +155,7 @@ function MainView(WikiaApp) {
 	function sendFile(loginXhr, media, token, that, serverUrl) {
 		Ti.API.info('SEND FILE QUERY:');
 		Ti.API.info('token: ' + token);
-		Ti.API.info('url: ' + that.responseText);
+		Ti.API.info('response: ' + that.responseText);
 		var responseObject = eval('(' + that.responseText + ')');
 		var pages = responseObject.query.pages;
 		for (i in pages) {
@@ -171,6 +173,7 @@ function MainView(WikiaApp) {
 			format: 'json'
 		});
 		loginXhr.onload = function() {
+			recentUrlAddUrl(serverUrl);
 			sendFileCallback(that, self, responseObject, token);
 		};
 		loginXhr.onerror = function(e) {
@@ -212,15 +215,36 @@ function MainView(WikiaApp) {
 			width: 400,
 			height: 80,
 		});
-		var data = [];
-		//TO-DO: unmock this mocked data
-		data[0]=Ti.UI.createPickerRow({title:'Bananas'});
-		data[1]=Ti.UI.createPickerRow({title:'Strawberries'});
-		data[2]=Ti.UI.createPickerRow({title:'Mangos'});
-		data[3]=Ti.UI.createPickerRow({title:'Grapes'});
-		picker.add(data);
-		picker.selectionIndicator = true;
-		return picker;
+		recentArray = Titanium.App.Properties.getList('recentUrl');
+		if (recentArray) {
+			var data = [];
+			for (var i = 0; i < recentArray.length; i++) {
+				data[i]=Ti.UI.createPickerRow({title: recentArray[i]});
+			}
+			picker.add(data);
+			picker.selectionIndicator = true;
+			return picker;
+		}
+		else {
+			return false;
+		}
+	}
+
+	function recentUrlAddUrl(url) {
+		recentArray = Titanium.App.Properties.getList('recentUrl');
+		if (recentArray) {
+			for (var i = 0; i < recentArray.length; i++) {
+				if (recentArray[i] == url) {
+					return false;
+				}
+			}
+			recentArray.push(url);
+		}
+		else {
+			var recentArray = [];
+			recentArray[0] = url;
+		}
+		Titanium.App.Properties.setList('recentUrl', recentArray);
 	}
 
 	return self;
