@@ -60,10 +60,7 @@ function LoginView(WikiaApp) {
 			result = user.preLogInValidation(username, password);
 		
 		if( result === 1 ) {
-			self.app.window.fireEvent('wikiaAppUserLogInStateChanged', {
-				currentState: (user.isLoggedIn() ? user.LOGGED_IN : user.LOGGED_OFF),
-				preValidation: result
-			});
+			user.logInViaAPI(self.app);
 		} else {
 			self.handleFailedLogin(result);
 		}
@@ -94,19 +91,19 @@ LoginView.prototype.hide = function() {
 };
 
 LoginView.prototype.getUserNameField = function() {
-	return this.view.children[0];
+	return this.view.getChildren()[0];
 };
 
 LoginView.prototype.getPasswordField = function() {
-	return this.view.children[1];
+	return this.view.getChildren()[1];
 };
 
 LoginView.prototype.getLoginButton = function() {
-	return this.view.children[2];
+	return this.view.getChildren()[2];
 };
 
 LoginView.prototype.getLabelStatus = function() {
-	return this.view.children[3];
+	return this.view.getChildren()[3];
 };
 
 LoginView.prototype.doFillFieldsWithAppData = function() {
@@ -145,18 +142,25 @@ LoginView.prototype.enableForm = function() {
 };
 
 LoginView.prototype.handleFailedLogin = function(result) {
-	var output = '';
+	var output = '',
+		user = this.app.getUser();
 	
 	switch(result) {
-		case 1:
+		case user.LOGIN_VALIDATION_SUCCESS:
 			//success
 			break;
-		case -1:
-		case -2:
+		case user.LOGIN_VALIDATION_INVALID_USERNAME:
+		case user.LOGIN_VALIDATION_INVALID_PASSWORD:
 			output = 'Invalid username or password. Please try again.';
 			break;
-		case -3:
+		case user.LOGIN_VALIDATION_NO_INTERNET_CONNECTION:
 			output = 'Your device needs to be connected to Internet while using this application.';
+			break;
+		case user.LOGIN_VALIDATION_WAIT:
+			output = 'You cannot try to log in so fast. Wait and try again later.';
+			break;
+		case user.LOGIN_VALIDATION_INVALID_API_RESPONSE:
+			output = 'API error. Please try again later.';
 			break;
 		default:
 			output = 'User autherization error...';
