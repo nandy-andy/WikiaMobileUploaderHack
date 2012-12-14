@@ -71,7 +71,26 @@ function MainView(WikiaApp) {
 	var self = Ti.UI.createView({
 		backgroundColor: '#232323'
 	});  
-	
+
+	var lblDescription = Ti.UI.createLabel({
+		width: 'auto',
+		top: 15,
+		text: 'Put wiki URL or select it from recent wikis',
+		height: 20,
+		font: {fontFamily: 'Arial', fontSize: 19, fontWeight: 'bold'},
+		color: '#fff',
+	});
+
+	var formUrl = Titanium.UI.createTextField({
+		top: 60,
+		width: 400,
+		height: 80,
+		hintText: 'e.g. gta.wikia.com',
+		keyboardType: Titanium.UI.KEYBOARD_DEFAULT,
+		returnKeyType: Titanium.UI.RETURNKEY_NEXT,
+		suppressReturn: false
+	});
+
 	var lblSending = Ti.UI.createLabel({
 		width: 'auto',
 		right: ((Ti.Platform.displayCaps.platformWidth - 300) / 2),
@@ -83,17 +102,7 @@ function MainView(WikiaApp) {
 		textAlign: 'right',
 		visible: false
 	});
-	
-	var formUrl = Titanium.UI.createTextField({
-		top: 40,
-		width: 400,
-		height: 80,
-		hintText: 'URL',
-		keyboardType: Titanium.UI.KEYBOARD_DEFAULT,
-		returnKeyType: Titanium.UI.RETURNKEY_NEXT,
-		suppressReturn: false
-	});
-	
+
 	var btnChoosePhoto = Ti.UI.createButton({
 		top: 280,
 		width: 400,
@@ -103,7 +112,7 @@ function MainView(WikiaApp) {
 		color: '#000000',
 		visible: true
 	});
-	
+
 	btnChoosePhoto.addEventListener('click', function(e){
 		Titanium.Media.openPhotoGallery({
 			success:function(event) {
@@ -117,10 +126,12 @@ function MainView(WikiaApp) {
 			mediaTypes:[Ti.Media.MEDIA_TYPE_PHOTO]
 		});
 	});
-	
-	self.add(lblSending);
+
+	self.add(lblDescription);
 	self.add(formUrl);
+	self.add(renderPicker());
 	self.add(btnChoosePhoto);
+	self.add(lblSending);
 
 	function UploadPhotoToServer2(media) {
 		var label = self.children[0];
@@ -191,7 +202,24 @@ function MainView(WikiaApp) {
 		var fileName = cd.getFullYear()+'_'+month+'_'+day+' '+cd.getHours()+'_'+cd.getMinutes()+'_'+cd.getSeconds()+'_'+cd.getMilliseconds();
 		return fileName;
 	}
-	
+
+	function renderPicker() {
+		var picker = Ti.UI.createPicker({
+			top:170,
+			width: 400,
+			height: 80,
+		});
+		var data = [];
+		//TO-DO: unmock this mocked data
+		data[0]=Ti.UI.createPickerRow({title:'Bananas'});
+		data[1]=Ti.UI.createPickerRow({title:'Strawberries'});
+		data[2]=Ti.UI.createPickerRow({title:'Mangos'});
+		data[3]=Ti.UI.createPickerRow({title:'Grapes'});
+		picker.add(data);
+		picker.selectionIndicator = true;
+		return picker;
+	}
+
 	return self;
 };
 
