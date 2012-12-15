@@ -124,8 +124,6 @@ function MainView(WikiaApp) {
 			for (var i = 0; i < recentArray.length; i++) {
 				data[i]=Ti.UI.createPickerRow({title: recentArray[i]});
 			}
-			data[1] = Ti.UI.createPickerRow({title: "test1"});
-			data[2] = Ti.UI.createPickerRow({title: "test2"});
 			picker.add(data);
 			picker.selectionIndicator = true;
 			picker.addEventListener('change', function(e) {
