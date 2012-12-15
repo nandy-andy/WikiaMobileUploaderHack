@@ -1,4 +1,8 @@
 function MainView(WikiaApp) {
+	/* "constants" */
+	this.DEFAULT_API_URL = 'http://nandytest.wikia.com/api.php';
+	
+	/* properties */
 	this.app = WikiaApp;
 	var that = this;
 	var self = Ti.UI.createView({
@@ -6,9 +10,22 @@ function MainView(WikiaApp) {
 	});
 	this.view = self;
 
+	function UploadPhotoToServer2(media) {
+		var label = that.getSendingLabel();
+		var uploadButton = self.children[2];
+		if (Titanium.Network.online == true) {
+			WikiaApp.logger.logObj(self.children);
+			label.text = 'Uploading photo, please wait...';
+			sendPhoto(media, self);
+		} else {
+			label.text = 'You must have a valid Internet connection in order to upload this photo.';
+		}
+		label.show();
+	}
+
 	function sendPhoto(media, self) {
 		var token;
-		var serverUrl = 'http://nandytest.wikia.com/api.php';
+		var serverUrl = that.retriveWikiUrl();
 		var loginXhr = Titanium.Network.createHTTPClient();
 		var username = WikiaApp.user.getUserName();
 		var password = WikiaApp.user.getPassword();
@@ -39,18 +56,29 @@ function MainView(WikiaApp) {
 			alert('Sorry, we could not upload your photo! Please try again.');
 		};
 	}
-
-	function UploadPhotoToServer2(media) {
-		var label = that.getSendingLabel();
-		var uploadButton = self.children[2];
-		if (Titanium.Network.online == true) {
-			WikiaApp.logger.logObj(self.children);
-			label.text = 'Uploading photo, please wait...';
-			sendPhoto(media, self);
-		} else {
-			label.text = 'You must have a valid Internet connection in order to upload this photo.';
-		}
-		label.show();
+	
+	function loginRequest(token, loginXhr, media, serverUrl, view) {
+		//loginRequest(token, this, media, serverUrl, self);
+		Ti.API.info('LOGIN:');
+		Ti.API.info('token: '+ token);
+		Ti.API.info('url: '+ loginXhr.responseText);
+		var responseObject = JSON.parse(loginXhr.responseText);
+		token = responseObject.login.lgtoken;
+		loginXhr.open('GET', serverUrl);
+		loginXhr.send({
+			format: 'json',
+			action: 'query',
+			prop: 'info',
+			intoken: 'edit',
+			titles: 'WikiaMobileUploadArticle'
+		});
+		loginXhr.onload = function() {
+			sendFile(this, media, token, serverUrl, view);
+		};
+		loginXhr.onerror = function(e) {
+			Ti.API.info('IN ERROR ' + e.error);
+			alert('Sorry, we could not login you.');
+		};
 	}
 	
 	function sendFile(loginXhr, media, token, serverUrl, view) {
@@ -149,30 +177,6 @@ function MainView(WikiaApp) {
 		}
 		Titanium.App.Properties.setList('recentUrl', recentArray);
 	}
-
-	function loginRequest(token, loginXhr, media, serverUrl, view) {
-		//loginRequest(token, this, media, serverUrl, self);
-		Ti.API.info('LOGIN:');
-		Ti.API.info('token: '+ token);
-		Ti.API.info('url: '+ loginXhr.responseText);
-		var responseObject = JSON.parse(loginXhr.responseText);
-		token = responseObject.login.lgtoken;
-		loginXhr.open('GET', serverUrl);
-		loginXhr.send({
-			format: 'json',
-			action: 'query',
-			prop: 'info',
-			intoken: 'edit',
-			titles: 'WikiaMobileUploadArticle'
-		});
-		loginXhr.onload = function() {
-			sendFile(this, media, token, serverUrl, view);
-		};
-		loginXhr.onerror = function(e) {
-			Ti.API.info('IN ERROR ' + e.error);
-			alert('Sorry, we could not login you.');
-		};
-	}
 	
 	var lblDescription = Ti.UI.createLabel({
 		width: 'auto',
@@ -262,5 +266,34 @@ MainView.prototype.getSendingLabel = function() {
 	
 	return this.view.getChildren()[3];
 };
+
+MainView.prototype.retriveWikiUrl = function() {
+	var formField = this.getUrlField(),
+		url = this.DEFAULT_API_URL;
+	
+	if( typeof(formField) === 'object' 
+	 && typeof(formField.value) === 'string'
+	 && formField.value !== ''
+	) {
+		var UrlParser = require('modules/UrlParser').UrlParser;
+		var parsedUrl = new UrlParser().doParse(formField.value);
+		
+		//force default scheme
+		if( !parsedUrl.scheme ) {
+			parsedUrl.scheme = 'http';
+		}
+		
+		//force default scheme
+		parsedUrl.path = '/api.php';
+		
+		if( parsedUrl.host ) {
+			url = parsedUrl.scheme + '://' + parsedUrl.host + parsedUrl.path;
+		}
+	}
+	
+	this.app.logger.log(url);
+	
+	return url;
+}
 
 exports.MainView = MainView;
