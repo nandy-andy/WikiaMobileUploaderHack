@@ -220,7 +220,7 @@ function MainView(WikiaApp) {
 	});
 
 	btnChoosePhoto.addEventListener('click', function(e){
-		WikiaApp.logger.log("btnChoosePhoto clicked!!");
+		that.getSendingLabel().text = '';
 		Titanium.Media.openPhotoGallery({
 			success: function(event) {
 				WikiaApp.logger.log('Image type is: ' + event.mediaType);
@@ -231,6 +231,7 @@ function MainView(WikiaApp) {
 			},
 			cancel: function() {
 				WikiaApp.logger.log('openPhotoGallery cancel');
+				that.getSendingLabel().text = '';
 			},
 			error: function(err) {
 				WikiaApp.logger.log('openPhotoGallery error');
