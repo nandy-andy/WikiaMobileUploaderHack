@@ -26,7 +26,8 @@ function MainView(WikiaApp) {
 	function sendPhoto(media, self) {
 		var token;
 		var serverUrl = that.retriveWikiUrl();
-		var loginXhr = Titanium.Network.createHTTPClient();
+		var loginXhr = undefined; //clear loginXhr cache
+		loginXhr = Titanium.Network.createHTTPClient();
 		var username = WikiaApp.user.getUserName();
 		var password = WikiaApp.user.getPassword();
 		loginXhr.open('POST', serverUrl);
@@ -48,17 +49,20 @@ function MainView(WikiaApp) {
 				format: 'json'
 			});
 			loginXhr.onload = function() {
-				loginRequest(token, this, media, serverUrl, self);
+				editRequest(token, this, media, serverUrl, self);
+			};
+			loginXhr.onerror = function(e) {
+				Ti.API.info('IN ERROR ' + e.error);
+				alert('Sorry, we could not login you. Please try again.');
 			};
 		}
 		loginXhr.onerror = function(e) {
 			Ti.API.info('IN ERROR ' + e.error);
-			alert('Sorry, we could not upload your photo! Please try again.');
+			alert('Sorry, we could not get your token. Please try again.');
 		};
 	}
 	
-	function loginRequest(token, loginXhr, media, serverUrl, view) {
-		//loginRequest(token, this, media, serverUrl, self);
+	function editRequest(token, loginXhr, media, serverUrl, view) {
 		Ti.API.info('LOGIN:');
 		Ti.API.info('token: '+ token);
 		Ti.API.info('url: '+ loginXhr.responseText);
@@ -81,7 +85,7 @@ function MainView(WikiaApp) {
 		};
 	}
 	
-	function sendFile(loginXhr, media, token, serverUrl, view) {
+	function sendFile(loginXhr, media, token, localUrl, view) {
 		Ti.API.info('SEND FILE QUERY:');
 		Ti.API.info('token: ' + token);
 		Ti.API.info('response: ' + loginXhr.responseText);
@@ -90,7 +94,7 @@ function MainView(WikiaApp) {
 		for( i in pages ) {
 			token = pages[i].edittoken;
 		}
-		loginXhr.open('POST', serverUrl);
+		loginXhr.open('POST', localUrl);
 		loginXhr.setRequestHeader("enctype", "multipart/form-data");
 		loginXhr.setRequestHeader("Connection", "close");
 		loginXhr.send({
@@ -102,7 +106,7 @@ function MainView(WikiaApp) {
 			format: 'json'
 		});
 		loginXhr.onload = function() {
-			recentUrlAddUrl(serverUrl);
+			recentUrlAddUrl(localUrl);
 			sendFileCallback(this, view, token);
 		};
 		loginXhr.onerror = function(e) {
@@ -138,6 +142,7 @@ function MainView(WikiaApp) {
 	}
 
 	function renderPicker(self) {
+		var recentWikisMsg = "Recent Wikis";
 		var picker = Ti.UI.createPicker({
 			top:170,
 			width: 400,
@@ -145,14 +150,17 @@ function MainView(WikiaApp) {
 		});
 		recentArray = Titanium.App.Properties.getList('recentUrl');
 		if (recentArray) {
-			var data = [];
+			var ListData = [];
 			for (var i = 0; i < recentArray.length; i++) {
-				data[i]=Ti.UI.createPickerRow({title: recentArray[i]});
+				ListData[i] = Ti.UI.createPickerRow({title: recentArray[i]});
 			}
-			picker.add(data);
+			ListData.unshift(Ti.UI.createPickerRow({title: recentWikisMsg}));
+			picker.add(ListData);
 			picker.selectionIndicator = true;
 			picker.addEventListener('change', function(e) {
-				self.children[1].value = e.selectedValue[0];
+				if (e.selectedValue[0] !== recentWikisMsg) {
+					self.children[1].value = e.selectedValue[0];
+				}
 			});
 			return picker;
 		}
@@ -260,10 +268,9 @@ MainView.prototype.getUrlField = function() {
 };
 
 MainView.prototype.getSendingLabel = function() {
-	if( Titanium.App.Properties.getList('recentUrl') ) {
+	if( typeof this.view.getChildren()[4] !== "undefined" ) {
 		return this.view.getChildren()[4];
 	}
-	
 	return this.view.getChildren()[3];
 };
 
@@ -286,9 +293,7 @@ MainView.prototype.retriveWikiUrl = function() {
 		//force default scheme
 		parsedUrl.path = '/api.php';
 		
-		if( parsedUrl.host ) {
-			url = parsedUrl.scheme + '://' + parsedUrl.host + parsedUrl.path;
-		}
+		url = parsedUrl.scheme + '://' + formField.value + parsedUrl.path;
 	}
 	
 	this.app.logger.log(url);
