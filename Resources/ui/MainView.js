@@ -20,7 +20,7 @@ function MainView(WikiaApp) {
 			format: 'json'
 		});
 		loginXhr.onload = function() {
-			var responseObject = eval('('+this.responseText+')');
+			var responseObject = JSON.parse(this.responseText);
 			token = responseObject.login.token;
 			loginXhr.open('POST', serverUrl);
 			loginXhr.send({
@@ -31,7 +31,7 @@ function MainView(WikiaApp) {
 				format: 'json'
 			});
 			loginXhr.onload = function() {
-				loginRequest(token, this, loginXhr, media, serverUrl, self);
+				loginRequest(token, this, media, serverUrl, self);
 			};
 		}
 		loginXhr.onerror = function(e) {
@@ -53,13 +53,13 @@ function MainView(WikiaApp) {
 		label.show();
 	}
 	
-	function sendFile(loginXhr, media, token, that, serverUrl, self) {
+	function sendFile(loginXhr, media, token, serverUrl, view) {
 		Ti.API.info('SEND FILE QUERY:');
 		Ti.API.info('token: ' + token);
-		Ti.API.info('response: ' + that.responseText);
-		var responseObject = eval('(' + that.responseText + ')');
+		Ti.API.info('response: ' + loginXhr.responseText);
+		var responseObject = JSON.parse(loginXhr.responseText);
 		var pages = responseObject.query.pages;
-		for (i in pages) {
+		for( i in pages ) {
 			token = pages[i].edittoken;
 		}
 		loginXhr.open('POST', serverUrl);
@@ -68,16 +68,14 @@ function MainView(WikiaApp) {
 		loginXhr.send({
 			token: token,
 			action: 'upload',
-			comment: 'wikia mobile upload',
+			comment: 'WikiaUploader automatic upload',
 			filename: getFileName() + '.jpg',
 			file: media,
 			format: 'json'
 		});
 		loginXhr.onload = function() {
-			//self.children[1].text = 'aaaaa';
-			//self.children[1].value = 'bbbb';
 			recentUrlAddUrl(serverUrl);
-			sendFileCallback(that, self, responseObject, token);
+			sendFileCallback(this, view, token);
 		};
 		loginXhr.onerror = function(e) {
 			Ti.API.info('IN ERROR ' + e.error);
@@ -85,19 +83,18 @@ function MainView(WikiaApp) {
 		};
 	}
 	
-	function sendFileCallback(that, self, responseObject, token) {
-		Ti.API.info('IN ONLOAD ' + that.status + ' readyState ' + that.readyState);
-		if(that.responseText != 'false') {
+	function sendFileCallback(loginXhr, view, token) {
+		Ti.API.info('IN ONLOAD ' + loginXhr.status + ' readyState ' + loginXhr.readyState);
+		if( loginXhr.responseText != 'false' ) {
 			Ti.API.info('FILE UPLOAD:');
 			Ti.API.info('token: ' + token);
-			Ti.API.info(that.responseText);
-			self.children[0].text = 'YEAH!'; //change the status label
-			var responseObject = eval('(' + that.responseText + ')');
+			Ti.API.info(loginXhr.responseText);
+			that.getSendingLabel().text = 'YEAH!'; //change the status label
+			var responseObject = JSON.parse(loginXhr.responseText);
 			Ti.API.info('==============');
 			Ti.API.info(responseObject.upload.result);
 			return true;
-		}
-		else {
+		} else {
 			alert('Whoops, something failed in your upload script.');
 			return false;
 		}
@@ -153,11 +150,12 @@ function MainView(WikiaApp) {
 		Titanium.App.Properties.setList('recentUrl', recentArray);
 	}
 
-	function loginRequest(token, that, loginXhr, media, serverUrl, self) {
+	function loginRequest(token, loginXhr, media, serverUrl, view) {
+		//loginRequest(token, this, media, serverUrl, self);
 		Ti.API.info('LOGIN:');
 		Ti.API.info('token: '+ token);
-		Ti.API.info('url: '+ that.responseText);
-		var responseObject = eval('('+ that.responseText+')');
+		Ti.API.info('url: '+ loginXhr.responseText);
+		var responseObject = JSON.parse(loginXhr.responseText);
 		token = responseObject.login.lgtoken;
 		loginXhr.open('GET', serverUrl);
 		loginXhr.send({
@@ -168,7 +166,7 @@ function MainView(WikiaApp) {
 			titles: 'WikiaMobileUploadArticle'
 		});
 		loginXhr.onload = function() {
-			sendFile(loginXhr, media, token, that, serverUrl, self);
+			sendFile(this, media, token, serverUrl, view);
 		};
 		loginXhr.onerror = function(e) {
 			Ti.API.info('IN ERROR ' + e.error);
