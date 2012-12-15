@@ -1,6 +1,10 @@
 function MainView(WikiaApp) {
-	self = this;
 	this.app = WikiaApp;
+	var that = this;
+	var self = Ti.UI.createView({
+		backgroundColor: '#232323'
+	});
+	this.view = self;
 
 	function sendPhoto(media, self) {
 		var token;
@@ -35,83 +39,9 @@ function MainView(WikiaApp) {
 			alert('Sorry, we could not upload your photo! Please try again.');
 		};
 	}
-	
-	var self = Ti.UI.createView({
-		backgroundColor: '#232323'
-	});  
-
-	var lblDescription = Ti.UI.createLabel({
-		width: 'auto',
-		top: 15,
-		text: 'Put wiki URL or select it from recent wikis',
-		height: 20,
-		font: {fontFamily: 'Arial', fontSize: 19, fontWeight: 'bold'},
-		color: '#fff',
-	});
-
-	var formUrl = Titanium.UI.createTextField({
-		top: 60,
-		width: 400,
-		height: 80,
-		hintText: 'e.g. gta.wikia.com',
-		keyboardType: Titanium.UI.KEYBOARD_DEFAULT,
-		returnKeyType: Titanium.UI.RETURNKEY_NEXT,
-		suppressReturn: false
-	});
-
-	var lblSending = Ti.UI.createLabel({
-		width: 'auto',
-		right: ((Ti.Platform.displayCaps.platformWidth - 300) / 2),
-		top: ((Ti.Platform.displayCaps.platformHeight / 2) + 30),
-		text: '',
-		height: 20,
-		font: {fontFamily: 'Arial', fontSize: 14, fontWeight: 'bold'},
-		color: '#fff',
-		textAlign: 'right',
-		visible: false
-	});
-
-	var btnChoosePhoto = Ti.UI.createButton({
-		top: 280,
-		width: 400,
-		height: 150,
-		title: '(v.0.2) Select photo for upload',
-		font: {fontSize: 24, fontFamily: 'Arial'},
-		color: '#000000',
-		visible: true
-	});
-
-	btnChoosePhoto.addEventListener('click', function(e){
-		WikiaApp.logger.log("btnChoosePhoto clicked!!");
-		Titanium.Media.openPhotoGallery({
-			success: function(event) {
-				WikiaApp.logger.log('Image type is: ' + event.mediaType);
-				Ti.API.debug('Our type was: '+event.mediaType);
-				if(event.mediaType == Ti.Media.MEDIA_TYPE_PHOTO) {
-					UploadPhotoToServer2(event.media);
-				}
-			},
-			cancel: function() {
-				WikiaApp.logger.log('openPhotoGallery cancel');
-			},
-			error: function(err) {
-				WikiaApp.logger.log('openPhotoGallery error');
-				Ti.API.error(err);
-			},
-			mediaTypes:[Ti.Media.MEDIA_TYPE_PHOTO]
-		});
-	});
-
-	self.add(lblDescription);
-	self.add(formUrl);
-	if (Titanium.App.Properties.getList('recentUrl')) {
-		self.add(renderPicker(self));
-	}
-	self.add(btnChoosePhoto);
-	self.add(lblSending);
 
 	function UploadPhotoToServer2(media) {
-		var label = self.children[4];
+		var label = that.getSendingLabel();
 		var uploadButton = self.children[2];
 		if (Titanium.Network.online == true) {
 			WikiaApp.logger.logObj(self.children);
@@ -247,16 +177,94 @@ function MainView(WikiaApp) {
 			alert('Sorry, we could not login you.');
 		};
 	}
+	
+	var lblDescription = Ti.UI.createLabel({
+		width: 'auto',
+		top: 15,
+		text: 'Put wiki URL or select it from recent wikis',
+		height: 20,
+		font: {fontFamily: 'Arial', fontSize: 19, fontWeight: 'bold'},
+		color: '#fff',
+	});
+
+	var formUrl = Titanium.UI.createTextField({
+		top: 60,
+		width: 400,
+		height: 80,
+		hintText: 'e.g. gta.wikia.com',
+		keyboardType: Titanium.UI.KEYBOARD_DEFAULT,
+		returnKeyType: Titanium.UI.RETURNKEY_NEXT,
+		suppressReturn: false
+	});
+
+	var lblSending = Ti.UI.createLabel({
+		width: 'auto',
+		right: ((Ti.Platform.displayCaps.platformWidth - 300) / 2),
+		top: ((Ti.Platform.displayCaps.platformHeight / 2) + 30),
+		text: '',
+		height: 20,
+		font: {fontFamily: 'Arial', fontSize: 14, fontWeight: 'bold'},
+		color: '#fff',
+		textAlign: 'right',
+		visible: false
+	});
+
+	var btnChoosePhoto = Ti.UI.createButton({
+		top: 280,
+		width: 400,
+		height: 150,
+		title: '(v.0.2) Select photo for upload',
+		font: {fontSize: 24, fontFamily: 'Arial'},
+		color: '#000000',
+		visible: true
+	});
+
+	btnChoosePhoto.addEventListener('click', function(e){
+		WikiaApp.logger.log("btnChoosePhoto clicked!!");
+		Titanium.Media.openPhotoGallery({
+			success: function(event) {
+				WikiaApp.logger.log('Image type is: ' + event.mediaType);
+				Ti.API.debug('Our type was: '+event.mediaType);
+				if(event.mediaType == Ti.Media.MEDIA_TYPE_PHOTO) {
+					UploadPhotoToServer2(event.media);
+				}
+			},
+			cancel: function() {
+				WikiaApp.logger.log('openPhotoGallery cancel');
+			},
+			error: function(err) {
+				WikiaApp.logger.log('openPhotoGallery error');
+				Ti.API.error(err);
+			},
+			mediaTypes:[Ti.Media.MEDIA_TYPE_PHOTO]
+		});
+	});
+	
+	self.add(lblDescription);
+	self.add(formUrl);
+	if( Titanium.App.Properties.getList('recentUrl') ) {
+		self.add(renderPicker(self));
+	}
+	self.add(btnChoosePhoto);
+	self.add(lblSending);
 
 	return self;
 };
 
-MainView.prototype.show = function() {
-	this.show();
+MainView.prototype.getDescriptionLabel = function() {
+	return this.view.getChildren()[0];
 };
 
-MainView.prototype.hide = function() {
-	this.hide();
+MainView.prototype.getUrlField = function() {
+	return this.view.getChildren()[1];
+};
+
+MainView.prototype.getSendingLabel = function() {
+	if( Titanium.App.Properties.getList('recentUrl') ) {
+		return this.view.getChildren()[4];
+	}
+	
+	return this.view.getChildren()[3];
 };
 
 exports.MainView = MainView;
