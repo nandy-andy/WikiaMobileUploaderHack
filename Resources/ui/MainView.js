@@ -139,12 +139,12 @@ function MainView(WikiaApp) {
 
 	function renderPicker(self) {
 		var picker = Ti.UI.createPicker({
-			top:170,
+			top: 170,
 			width: 400,
 			height: 80,
 		});
 		recentArray = Titanium.App.Properties.getList('recentUrl');
-		if (recentArray) {
+		if( recentArray ) {
 			var data = [];
 			for (var i = 0; i < recentArray.length; i++) {
 				data[i]=Ti.UI.createPickerRow({title: recentArray[i]});
@@ -152,7 +152,7 @@ function MainView(WikiaApp) {
 			picker.add(data);
 			picker.selectionIndicator = true;
 			picker.addEventListener('change', function(e) {
-				self.children[1].value = e.selectedValue[0];
+				that.getUrlField().value = e.selectedValue[0];
 			});
 			return picker;
 		}
@@ -182,13 +182,13 @@ function MainView(WikiaApp) {
 		width: 'auto',
 		top: 15,
 		text: 'Put wiki URL or select it from recent wikis',
-		height: 20,
+		height: 25,
 		font: {fontFamily: 'Arial', fontSize: 19, fontWeight: 'bold'},
 		color: '#fff',
 	});
 
 	var formUrl = Titanium.UI.createTextField({
-		top: 60,
+		top: 65,
 		width: 400,
 		height: 80,
 		hintText: 'e.g. gta.wikia.com',
@@ -210,7 +210,7 @@ function MainView(WikiaApp) {
 	});
 
 	var btnChoosePhoto = Ti.UI.createButton({
-		top: 280,
+		top: 285,
 		width: 400,
 		height: 150,
 		title: '(v.0.2) Select photo for upload',
