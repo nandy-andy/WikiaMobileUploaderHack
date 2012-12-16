@@ -284,20 +284,22 @@ MainView.prototype.retriveWikiUrl = function() {
 	 && formField.value !== ''
 	) {
 		var UrlParser = require('modules/UrlParser').UrlParser;
-		var parsedUrl = new UrlParser().doParse(formField.value);
+		UrlParser = new UrlParser();
+		var parsedUrl = UrlParser.doParse(formField.value);
 		
 		//force default scheme
 		if( !parsedUrl.scheme ) {
 			parsedUrl.scheme = 'http';
+			parsedUrl = UrlParser.doParse( parsedUrl.scheme + '://' + formField.value );
 		}
 		
 		//force default scheme
 		parsedUrl.path = '/api.php';
 		
-		url = parsedUrl.scheme + '://' + formField.value + parsedUrl.path;
+		url = parsedUrl.scheme + '://' + parsedUrl.host + parsedUrl.path;
 	}
 	
-	this.app.logger.log(url);
+	this.app.logger.log(url, 'Retrived wiki url:');
 	
 	return url;
 }
