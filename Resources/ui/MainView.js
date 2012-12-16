@@ -103,6 +103,7 @@ function MainView(WikiaApp) {
 			comment: 'WikiaUploader automatic upload',
 			filename: getFileName() + '.jpg',
 			file: media,
+			ignorewarnings: 1,
 			format: 'json'
 		});
 		loginXhr.onload = function() {
@@ -299,7 +300,7 @@ MainView.prototype.retriveWikiUrl = function() {
 		url = parsedUrl.scheme + '://' + parsedUrl.host + parsedUrl.path;
 	}
 	
-	this.app.logger.log(url, 'Retrived wiki url:');
+	this.app.logger.log(url, 'Retrived wiki url');
 	
 	return url;
 }
