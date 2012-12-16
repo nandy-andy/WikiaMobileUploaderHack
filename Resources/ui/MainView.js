@@ -107,7 +107,7 @@ function MainView(WikiaApp) {
 			format: 'json'
 		});
 		loginXhr.onload = function() {
-			recentUrlAddUrl(localUrl);
+			recentUrlAddUrl( that.getUrlField().value );
 			sendFileCallback(this, view, token);
 		};
 		loginXhr.onerror = function(e) {
