@@ -37,7 +37,7 @@ function LoginView(WikiaApp) {
 		width: 400,
 		height: 150,
 		title: 'Login',
-		font: {fontSize: 24, fontFamily: 'Arial'},
+		font: {fontSize: 28, fontFamily: 'Arial'},
 		color: '#000000',
 		visible: true
 	});
@@ -56,13 +56,20 @@ function LoginView(WikiaApp) {
 	btnLogin.addEventListener('click', function(e) {
 		var user = WikiaApp.getUser(),
 			username = self.getUserNameField().value,
-			password = self.getPasswordField().value,
-			result = user.preLogInValidation(username, password);
-		
-		if( result === 1 ) {
-			user.logInViaAPI(self.app);
-		} else {
-			self.handleFailedLogin(result);
+			password = self.getPasswordField().value;
+		if (username == "reset") {
+			Ti.App.Properties.removeProperty('recentUrl');
+			Ti.App.Properties.removeProperty('WikiaAppUserName');
+			Ti.App.Properties.removeProperty('WikiaAppPassword');
+			alert("Properties removed");
+		}
+		else {
+			var result = user.preLogInValidation(username, password);
+			if( result === 1 ) {
+				user.logInViaAPI(self.app);
+			} else {
+				self.handleFailedLogin(result);
+			}
 		}
 	});
 	

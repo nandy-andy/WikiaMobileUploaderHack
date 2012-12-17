@@ -222,8 +222,8 @@ function MainView(WikiaApp) {
 		top: 285,
 		width: 400,
 		height: 150,
-		title: '(v.0.2) Select photo for upload',
-		font: {fontSize: 24, fontFamily: 'Arial'},
+		title: 'Select photo',
+		font: {fontSize: 28, fontFamily: 'Arial'},
 		color: '#000000',
 		visible: true
 	});
